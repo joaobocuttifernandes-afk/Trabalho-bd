@@ -1,64 +1,32 @@
-# Trabalho-bd
-banco-de-dados
--- Criação do banco de dados
-CREATE DATABASE ecommerce_alura;
-USE ecommerce_alura;
+Coluna,Tipo,Restrição
+id_profissional,INTEGER,Primary Key (PK)
+nome_profissional,VARCHAR(100),NOT NULL
+especialidade,VARCHAR(50),NOT NULL
+telefone,VARCHAR(15),UNIQUE / NOT NULL
 
--- Tabela Geral (Generalização)
-CREATE TABLE Cliente (
-    id_cliente INT PRIMARY KEY AUTO_INCREMENT,
-    nome_completo VARCHAR(100) NOT NULL,
-    email VARCHAR(50) UNIQUE NOT NULL,
-    data_cadastro DATE DEFAULT (CURRENT_DATE)
-);
+Coluna,Tipo,Restrição
+id_servico,INTEGER,Primary Key (PK)
+nome_servico,VARCHAR(100),NOT NULL
+preco_base,"DECIMAL(10,2)",NOT NULL
+duracao_minutos,INTEGER,NOT NULL
 
--- Especialização: Pessoa Física
-CREATE TABLE Pessoa_Fisica (
-    id_cliente INT PRIMARY KEY,
-    cpf VARCHAR(11) UNIQUE NOT NULL,
-    FOREIGN KEY (id_cliente) REFERENCES Cliente(id_cliente)
-);
+Coluna,Tipo,Restrição
+fk_id_agendamento,INTEGER,PFK (Primary Foreign Key)
+fk_id_servico,INTEGER,PFK (Primary Foreign Key)
+valor_aplicado,"DECIMAL(10,2)",NOT NULL
+observacao,VARCHAR(255),-
 
--- Especialização: Pessoa Jurídica
-CREATE TABLE Pessoa_Juridica (
-    id_cliente INT PRIMARY KEY,
-    cnpj VARCHAR(14) UNIQUE NOT NULL,
-    FOREIGN KEY (id_cliente) REFERENCES Cliente(id_cliente)
-);
+Coluna,Tipo,Restrição
+fk_id_profissional,INTEGER,PFK (Primary Foreign Key)
+dia_semana,INTEGER,PFK (1 a 7 - Not Null)
+hora_inicio,TIME,NOT NULL
+hora_fim,TIME,NOT NULL
 
--- Entidade Fraca: Endereco (Relacionamento Identificador)
-CREATE TABLE Endereco (
-    id_endereco INT AUTO_INCREMENT,
-    id_cliente INT,
-    logradouro VARCHAR(100) NOT NULL,
-    numero VARCHAR(10),
-    cep VARCHAR(8),
-    PRIMARY KEY (id_endereco, id_cliente), -- Chave composta caracteriza entidade fraca
-    FOREIGN KEY (id_cliente) REFERENCES Cliente(id_cliente) ON DELETE CASCADE
-);
+🔑 Decisões Técnicas de Modelagem
+Entidade Fraca (Tb_DISPONIBILIDADE): A agenda não existe sem um profissional vinculado. Utilizamos uma chave primária composta (fk_id_profissional + dia_semana) para garantir que o profissional defina seus horários para cada dia específico.
 
--- Entidade Forte: Produto
-CREATE TABLE Produto (
-    id_produto INT PRIMARY KEY AUTO_INCREMENT,
-    descricao VARCHAR(150) NOT NULL,
-    preco DECIMAL(10, 2) NOT NULL,
-    estoque INT DEFAULT 0
-);
+Entidade Associativa (Tb_AGENDAMENTO_SERVICO): Permite que um único ticket de agendamento contenha múltiplos serviços, registrando o valor cobrado no momento da execução (evitando problemas se o preço do serviço mudar no futuro).
 
--- Relacionamento N:M entre Pedido e Produto (Tabela Associativa)
-CREATE TABLE Pedido (
-    id_pedido INT PRIMARY KEY AUTO_INCREMENT,
-    id_cliente INT,
-    data_pedido DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (id_cliente) REFERENCES Cliente(id_cliente)
-);
+Tipagem de Tempo: Introdução do tipo TIME para controle de horários e INTEGER para duração em minutos, facilitando cálculos matemáticos de agenda.
 
-CREATE TABLE Item_Pedido (
-    id_pedido INT,
-    id_produto INT,
-    quantidade INT NOT NULL,
-    preco_unitario DECIMAL(10, 2),
-    PRIMARY KEY (id_pedido, id_produto),
-    FOREIGN KEY (id_pedido) REFERENCES Pedido(id_pedido),
-    FOREIGN KEY (id_produto) REFERENCES Produto(id_produto)
-);
+Nomenclatura: Mantido o padrão Tb_ e snake_case, garantindo que a estrutura seja legível e padronizada para administradores de banco de dados (DBAs)
